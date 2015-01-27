@@ -44,8 +44,8 @@
 <layer number="48" name="Document" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="49" name="Reference" color="7" fill="1" visible="no" active="yes"/>
 <layer number="50" name="dxf" color="7" fill="1" visible="no" active="no"/>
-<layer number="51" name="tDocu" color="7" fill="1" visible="no" active="yes"/>
-<layer number="52" name="bDocu" color="7" fill="1" visible="no" active="yes"/>
+<layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="53" name="tGND_GNDA" color="7" fill="9" visible="no" active="no"/>
 <layer number="54" name="bGND_GNDA" color="1" fill="9" visible="no" active="no"/>
 <layer number="56" name="wert" color="7" fill="1" visible="no" active="no"/>
@@ -145,8 +145,8 @@
 <text x="2.794" y="67.818" size="0.508" layer="25" font="vector">Ledboard segment
 by jawsper (2015)
 v1.2</text>
-<dimension x1="2.286" y1="54.61" x2="24.13" y2="54.61" x3="13.208" y3="50.038" textsize="1.778" layer="48"/>
-<dimension x1="24.13" y1="54.61" x2="24.13" y2="76.454" x3="28.702" y3="65.532" textsize="1.778" layer="48"/>
+<dimension x1="2.286" y1="54.61" x2="24.13" y2="54.61" x3="13.208" y3="50.038" textsize="1.778" layer="51"/>
+<dimension x1="24.13" y1="54.61" x2="24.13" y2="76.454" x3="28.956" y3="65.532" textsize="1.778" layer="51"/>
 </plain>
 <libraries>
 <library name="SparkFun-Connectors">
