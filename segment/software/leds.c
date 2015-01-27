@@ -50,22 +50,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //IO-ports
 //If you change the port itself (e.g. PB0->PD0) you'll have to
 //track down these ports in the rest of the code too.
-#define CLK PC3
-#define PORT_CLK PORTC
-#define A0 PC2
-#define PORT_A0 PORTC
-#define A1 PC1
-#define PORT_A1 PORTC
 #define A2 PC0
 #define PORT_A2 PORTC
-#define UDAT PB1
-#define PORT_UDAT PORTB
-#define LDAT PB2
-#define PORT_LDAT PORTB
-#define STROBE PC5
-#define PORT_STROBE PORTC
+
+#define A1 PC1
+#define PORT_A1 PORTC
+
+#define A0 PC2
+#define PORT_A0 PORTC
+
+#define CLK PC3
+#define PORT_CLK PORTC
+
 #define OE PC4
 #define PORT_OE PORTC
+
+#define STROBE PC5
+#define PORT_STROBE PORTC
+
+#define UDAT PB1
+#define PORT_UDAT PORTB
+
+#define LDAT PB2
+#define PORT_LDAT PORTB
 
 //Display memory. The main routine can write here to modify the image on the 
 //LED-board. 0 = black = led completely off, 255 = 'white' = led completely on.
@@ -76,14 +83,14 @@ void initleds(void)
 {
 //Pin direction
     DDRB = (1 << UDAT) | (1 << LDAT);
-    DDRC = 0xff;
+    DDRC = (1 << CLK) | (1 << A0) | (1 << A1) | (1 << A2) | (1 << STROBE) | (1 << OE);
 //Timer for ledboard row advance interrupt.
 //Any timer can be used for this, as long as its interrupt routine
 //calls the ISR with a speed of at least 13KHz.
-    TCCR1A = 0;
-    TCCR1B = 9; //CTC, no prescaler
-    OCR1A = (F_CPU / (800 * 8)); 
-//    TIMSK1=2; //OCIE1A int enable
+    // TCCR1A = 0;
+    // TCCR1B = 9; //CTC, no prescaler
+    // OCR1A = (F_CPU / (800 * 8));
+    // TIMSK1=2; //OCIE1A int enable
 }
 
 //Timer interrupts. Sends the next row of pixels to the LCD.
@@ -101,9 +108,10 @@ void initleds(void)
 //(1<<n), the precision will be (8-n) bits. The advantage of a lower precision
 //is that the frame rate can be turned down. (1<<3) is the limit for an
 //ATMega88 at 20MHz and gives 5-bit precision.
-#define GRAYINC (1 << 2)
+#define GRAYINC (1 << 3)
 
 void do_leds()
+// ISR(TIMER1_COMPA_vect)
 {
     static char rowno; //number of the row we're at now
     static unsigned char *posu,*posd; //position in display memory
@@ -111,7 +119,7 @@ void do_leds()
     char x;
 
     //Send next line    
-    PORTB &= ~(1 << STROBE); //disable strobe in advance
+    PORT_STROBE &= ~(1 << STROBE); //disable strobe in advance
     for(x=0; x<32; x++) //for each pixel:
     {
         PORT_UDAT &= ~(1 << UDAT);
