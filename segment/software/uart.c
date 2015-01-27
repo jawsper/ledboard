@@ -16,10 +16,10 @@ void uart_setup(void)
 //    UBRR0=10; //115200 baud
 
     // 500000 baud @ 16MHz
-    UCSR0A = 0;
+    UCSR0A = 2;
     UBRR0 = 3;
 
-    // //Halve megabit >:)
+    // //Halve megabit >:) (@20 MHz)
     // UCSR0A = 2; //2=2xspeed
     // UBRR0 = 4; //500000 baud
 }
