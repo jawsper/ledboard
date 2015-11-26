@@ -3,6 +3,16 @@
 #include "LedBoard.h"
 #include "tkkrlab_96x48.xbm"
 
+/*
+
+Connection:
+
+Attach an enc28j60 module to the SPI bus, with CS on pin 10.
+Connect the ledmatrix to the RX pin (pin 3).
+Apply power.
+
+*/
+
 static LedBoard board;
 
 #define ETHERNET_BUFFER_SIZE 2000
