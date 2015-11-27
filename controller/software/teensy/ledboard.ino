@@ -2,6 +2,7 @@
 #include <EtherCard.h>
 #include "LedBoard.h"
 #include "tkkrlab_96x48.xbm"
+#include "defines.h"
 
 /*
 
@@ -32,7 +33,22 @@ void udpReceive(uint16_t dest_port, uint8_t src_ip[4], uint16_t src_port, const 
 	{
 		case 1337:
 		{
-			board.processPacket((const uint8_t*)data, len);
+			bool success = board.processPacket((const uint8_t*)data, len);
+			if(!success)
+			{
+				#ifdef DEBUG
+				Serial.println("Packet error!");
+				#endif
+				board.clear();
+				board.drawString("Packet error!", 0, 0, 0xFF);
+				board.writeBuffer();
+			}
+			else
+			{
+				#ifdef DEBUG
+				Serial.println("No packet error!");
+				#endif
+			}
 			break;
 		}
 	}
@@ -40,35 +56,45 @@ void udpReceive(uint16_t dest_port, uint8_t src_ip[4], uint16_t src_port, const 
 
 void setup()
 {
+	#ifdef DEBUG
+	Serial.begin(115200);
+	while(!Serial);
+	Serial.println("Debug enabled");
+	#endif
+
 	delay(1000);
 	board.init();
 	board.drawXBM((const uint8_t*)&tkkrlab_96x48_bits, sizeof tkkrlab_96x48_bits);
-	board.drawString("Loading...", 0, 0);
+	board.drawStringNoLen("TkkrLab Ledboard", 0, 0);
+	board.drawStringNoLen("Loading...", 0, 5);
 	board.writeBuffer();
 
 	if(ether.begin(sizeof Ethernet::buffer, mymac, PIN_CS) == 0)
 	{
 		board.clear();
-		board.drawString("Ethernet error!", 0, 0);
+		board.drawStringNoLen("Ethernet error!", 0, 0);
 		board.writeBuffer();
 		while(1);
 	}
 	if(!ether.dhcpSetup("ledboard"))
 	{
 		board.clear();
-		board.drawString("DHCP error!", 0, 0);
+		board.drawStringNoLen("DHCP error!", 0, 0);
 		board.writeBuffer();
 		while(1);
 	}
 	ether.udpServerListenOnPort(&udpReceive, 1337);
  
-	board.drawString("TkkrLab Ledboard", 0, 0);
 	static char sprintf_buffer[256];
 	sprintf(sprintf_buffer, "IP: %d.%d.%d.%d", ether.myip[0], ether.myip[1], ether.myip[2], ether.myip[3]);
-	board.drawString(sprintf_buffer, 0, 5);
+	board.drawStringNoLen(sprintf_buffer, 0, 5);
 	board.writeBuffer();
 	delay(5000);
 	board.clear();
+
+	#ifdef DEBUG
+	Serial.println("Init completed!");
+	#endif
 }
 
 void loop()

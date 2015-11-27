@@ -1,6 +1,7 @@
 #include "LedBoard.h"
 #include <Arduino.h>
 #include "font7x5.h"
+#include "defines.h"
 
 /*
 
@@ -41,6 +42,8 @@ Commands:
 			top left x position in chars (0-15)
 		* uint8_t y:
 			top left y position in chars (0-5)
+		* uint8_t brightness:
+			brightness of text (0x00-0xFF)
 		* [uint8_t text[...]]:
 			text (ascii)
 		* 0x00:
@@ -50,6 +53,8 @@ Commands:
 			top left x position in pixels (0-95)
 		* uint8_t y:
 			top left y position in pixels (0-47)
+		* uint8_t brightness:
+			brightness of text (0x00-0xFF)
 		* [uint8_t text[...]]:
 			text (ascii)
 		* 0x00:
@@ -130,6 +135,12 @@ bool LedBoard::processPacket(const uint8_t* data, uint16_t packet_len)
 	{
 		// first byte is command
 		uint8_t cmd = data[packet_position++];
+		#ifdef DEBUG
+		Serial.print("Packet: ");
+		Serial.print(cmd, HEX);
+		Serial.print(" " + String(packet_len));
+		Serial.println();
+		#endif
 		switch(cmd)
 		{
 			// write buffer
@@ -151,7 +162,7 @@ bool LedBoard::processPacket(const uint8_t* data, uint16_t packet_len)
 
 				uint8_t y = data[packet_position++];
 
-				packet_position += drawImage(0, y, 96, 8, (uint8_t*)data + packet_position);
+				packet_position += drawImage(0, y * 8, 96, 8, (uint8_t*)data + packet_position);
 
 				break;
 			}
@@ -170,7 +181,7 @@ bool LedBoard::processPacket(const uint8_t* data, uint16_t packet_len)
 				if(packet_len - packet_position < width * height)
 					return false;
 
-				packet_position += drawImage(x, y, width, height, (uint8_t*)data + packet_position);
+				packet_position += drawImage(x, y, width, height, (uint8_t*)(data + packet_position));
 				
 				break;
 			}
@@ -183,6 +194,7 @@ bool LedBoard::processPacket(const uint8_t* data, uint16_t packet_len)
 				bool absolute = cmd == 0x21;
 				uint8_t x = data[packet_position++];
 				uint8_t y = data[packet_position++];
+				uint8_t brightness = data[packet_position++];
 				int16_t str_size = strnlen((char*)(data + packet_position), packet_len - packet_position);
 				// string error
 				if(str_size < 0)
@@ -191,24 +203,28 @@ bool LedBoard::processPacket(const uint8_t* data, uint16_t packet_len)
 					(char*)(data + packet_position), 
 					str_size, 
 					x, y, 
+					brightness,
 					absolute
 				);
 				break;
 			}
+			// unknown command -> ignore this packet
+			default:
+				return false;
 		}
 	}
 	return true;
 }
 
 
-uint16_t LedBoard::drawString(char* text, uint8_t x_pos, uint8_t y_pos, bool absolute)
+uint16_t LedBoard::drawStringNoLen(char* text, uint8_t x_pos, uint8_t y_pos, uint8_t brightness, bool absolute)
 {
-	return drawString(text, strlen(text), x_pos, y_pos, absolute);
+	return drawString(text, strlen(text), x_pos, y_pos, brightness, absolute);
 }
 
 
 // draw a string at x_pos, y_pos, optionally absolute position
-uint16_t LedBoard::drawString(char* text, uint16_t len, uint8_t x_pos, uint8_t y_pos, bool absolute)
+uint16_t LedBoard::drawString(char* text, uint16_t len, uint8_t x_pos, uint8_t y_pos, uint8_t brightness, bool absolute)
 {
 	if(!absolute)
 	{
@@ -235,7 +251,7 @@ uint16_t LedBoard::drawString(char* text, uint16_t len, uint8_t x_pos, uint8_t y
 			{
 				bool on = (c & (1 << k)) != 0;
 				setPixel(
-					on ? 0x7f : 0x00, 
+					on ? brightness : 0x00,
 					x_pos + char_x + ((TEXT_CHAR_WIDTH + 1) * i), 
 					y_pos + k
 				);
@@ -250,9 +266,9 @@ writeText_exit:
 // draws an image in the specified region
 uint16_t LedBoard::drawImage(uint8_t x, uint8_t y, uint16_t width, uint16_t height, uint8_t* data)
 {
-	for(int y_pos = 0; y_pos < height; y++)
+	for(int y_pos = 0; y_pos < height; y_pos++)
 	{
-		for(int x_pos = 0; x_pos < width; x++)
+		for(int x_pos = 0; x_pos < width; x_pos++)
 		{
 			setPixel(*data++, x + x_pos, y + y_pos);
 		}
@@ -280,7 +296,7 @@ void LedBoard::writeBuffer()
 	outputStart();
 	for(int i = 0; i < TOTAL_SIZE; i++)
 	{
-		outputWrite(buffer[pixel_map[i]]);
+		outputWrite(buffer[pixel_map[i]] >> 1);
 	}
 }
 

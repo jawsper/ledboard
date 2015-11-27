@@ -15,8 +15,8 @@ public:
 	bool processPacket(const uint8_t*, uint16_t);
 
 	// draw functions
-	uint16_t drawString(char*, uint8_t, uint8_t, bool absolute=false);
-	uint16_t drawString(char*, uint16_t, uint8_t, uint8_t, bool absolute=false);
+	uint16_t drawStringNoLen(char*, uint8_t, uint8_t, uint8_t brightness=0xFF, bool absolute=false);
+	uint16_t drawString(char*, uint16_t, uint8_t, uint8_t, uint8_t brightness=0xFF, bool absolute=false);
 	uint16_t drawImage(uint8_t x, uint8_t y, uint16_t width, uint16_t height, uint8_t* data);
 	void drawXBM(const uint8_t*, uint16_t);
 
